@@ -121,6 +121,7 @@ def get_products(product_id):
 # U P D A T E   A   P R O D U C T
 ######################################################################
 
+
 @app.route("/products/<int:product_id>", methods=["PUT"])
 def update_products(product_id):
     """
@@ -164,6 +165,7 @@ def delete_products(product_id):
     app.logger.info("Product with id [%s] deleted!", product.id)
 
     return {}, status.HTTP_204_NO_CONTENT
+
 
 @app.route("/products", methods=["GET"])
 def get_product_list():

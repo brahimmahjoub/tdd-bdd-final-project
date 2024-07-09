@@ -217,14 +217,12 @@ class TestProductRoutes(TestCase):
         response = self.client.put(f"{BASE_URL}/0", json={})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-
     def test_delete_product(self):
         """It should Delete a Product"""
         test_product = ProductFactory()
         logging.debug("Test Product: %s", test_product.serialize())
         response = self.client.post(BASE_URL, json=test_product.serialize())
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
         new_product = response.get_json()
         response = self.client.delete(f"{BASE_URL}/{new_product['id']}")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
