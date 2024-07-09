@@ -20,7 +20,7 @@ Product Store Service with UI
 """
 from flask import jsonify, request, abort
 from flask import url_for  # noqa: F401 pylint: disable=unused-import
-from service.models import Product
+from service.models import Product, Category
 from service.common import status  # HTTP Status Codes
 from . import app
 
@@ -106,23 +106,84 @@ def create_products():
 # R E A D   A   P R O D U C T
 ######################################################################
 
-#
-# PLACE YOUR CODE HERE TO READ A PRODUCT
-#
+@app.route("/products/<int:product_id>", methods=["GET"])
+def get_products(product_id):
+    """Get a product by id"""
+    app.logger.info("Request to Get a product by id")
+    product = Product.find(product_id)
+    if product is None:
+        return {}, status.HTTP_404_NOT_FOUND
+
+    message = product.serialize()
+    return jsonify(message), status.HTTP_200_OK
 
 ######################################################################
 # U P D A T E   A   P R O D U C T
 ######################################################################
 
-#
-# PLACE YOUR CODE TO UPDATE A PRODUCT HERE
-#
+@app.route("/products/<int:product_id>", methods=["PUT"])
+def update_products(product_id):
+    """
+    Updates a Product
+    This endpoint will update a Product based the data in the body that is posted
+    """
+    app.logger.info("Request to Update a Product...")
+    check_content_type("application/json")
+
+    data = request.get_json()
+    app.logger.info("Processing: %s", data)
+    product = Product.find(product_id)
+    if not product:
+        return {}, status.HTTP_404_NOT_FOUND
+
+    product.deserialize(data)
+    product.update()
+    app.logger.info("Product with id [%s] saved!", product.id)
+
+    message = product.serialize()
+    return jsonify(message), status.HTTP_200_OK
+
 
 ######################################################################
 # D E L E T E   A   P R O D U C T
 ######################################################################
 
+@app.route("/products/<int:product_id>", methods=["DELETE"])
+def delete_products(product_id):
+    """
+    Deletes a Product
+    This endpoint will delete a Product based the data in the body that is posted
+    """
+    app.logger.info("Request to Delete a Product...")
 
-#
-# PLACE YOUR CODE TO DELETE A PRODUCT HERE
-#
+    product = Product.find(product_id)
+    if not product:
+        return {}, status.HTTP_404_NOT_FOUND
+
+    product.delete()
+    app.logger.info("Product with id [%s] deleted!", product.id)
+
+    return {}, status.HTTP_204_NO_CONTENT
+
+@app.route("/products", methods=["GET"])
+def get_product_list():
+    """Get a product list"""
+    app.logger.info("Request to Get a product list")
+
+    query_name = request.args.get("name")
+    query_category = request.args.get("category")
+    query_available = request.args.get("available")
+
+    if query_name:
+        products = Product.find_by_name(query_name)
+    elif query_category:
+        products = Product.find_by_category(Category.__getattr__(query_category))
+    elif query_available:
+        products = Product.find_by_availability(query_available)
+    else:
+        products = Product.all()
+
+    message = []
+    for product in products:
+        message.append(product.serialize())
+    return message, status.HTTP_200_OK
